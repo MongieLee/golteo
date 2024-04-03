@@ -105,21 +105,39 @@ func main() {
 			result.SuccessWithData(c, gin.H{})
 		})
 
-		gGroup.GET("/getUser", func(c *gin.Context) {
-			querySql := "select * from user"
-			var user persistent.User
-			var statusRaw []byte
-			var createAt string
-			var updateAt string
-			err := db.Db.QueryRow(querySql).Scan(&user.Id, &user.UserName, &user.NickName, &user.EncryptedPassword, &user.Avatar, &statusRaw, &createAt, &updateAt)
+		gGroup.GET("/users/:id", func(c *gin.Context) {
+			id := c.Param("id")
+			querySql := "select * from user where id = ?"
+			stmt, err := db.Db.Prepare(querySql)
 			if err != nil {
 				result.Failure(c, err.Error(), gin.H{})
 				return
 			}
-			result.Success(c, "查询成功", user)
+			defer stmt.Close()
+			rows, err := stmt.Query(id)
+			if err != nil {
+				result.Failure(c, err.Error(), gin.H{})
+				return
+			}
+			var user persistent.User
+			for rows.Next() {
+				var statusRaw []byte
+				var createAt string
+				var updateAt string
+				err := rows.Scan(&user.Id, &user.UserName, &user.NickName, &user.EncryptedPassword, &user.Avatar, &statusRaw, &createAt, &updateAt)
+				if err != nil {
+					result.Failure(c, err.Error(), gin.H{})
+					return
+				}
+				if user.Id != 0 {
+					result.Success(c, "查询成功", user)
+					return
+				}
+			}
+			result.FailureWithCode(c, http.StatusBadRequest, "用户不存在", gin.H{})
 		})
 
-		gGroup.GET("/getUsers", func(c *gin.Context) {
+		gGroup.GET("/users", func(c *gin.Context) {
 			querySql := "select * from user"
 			var statusRaw []byte
 			var createAt string
@@ -141,7 +159,7 @@ func main() {
 			result.Success(c, "查询成功", users)
 		})
 
-		gGroup.PATCH("/updateUser", func(c *gin.Context) {
+		gGroup.PATCH("/users", func(c *gin.Context) {
 			var body map[string]interface{}
 			err := json.NewDecoder(c.Request.Body).Decode(&body)
 			if err != nil {
@@ -149,7 +167,13 @@ func main() {
 				return
 			}
 			querySql := "update user set nickname = ? where id > ?"
-			ret, err := db.Db.Exec(querySql, body["username"], body["id"])
+			stmt, err := db.Db.Prepare(querySql)
+			if err != nil {
+				result.Failure(c, err.Error(), gin.H{})
+				return
+			}
+			defer stmt.Close()
+			ret, err := stmt.Exec(body["nickname"], body["id"])
 			if err != nil {
 				result.Failure(c, err.Error(), gin.H{})
 				return
