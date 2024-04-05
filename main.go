@@ -207,6 +207,44 @@ func main() {
 
 		})
 
+		gGroup.GET("/testTransaction", func(c *gin.Context) {
+			tx, err := db.Db.Begin()
+			if err != nil {
+				tx.Rollback()
+				result.Failure(c, err.Error(), gin.H{})
+				return
+			}
+			stmt, err := tx.Prepare("update user set nickname = 'fuck' where id = ?")
+			if err != nil {
+				tx.Rollback()
+				result.Failure(c, err.Error(), gin.H{})
+				return
+			}
+			ret, err := stmt.Exec("1")
+			if err != nil {
+				tx.Rollback()
+				result.Failure(c, err.Error(), gin.H{})
+				return
+			}
+			ret, err = stmt.Exec("2")
+			if err != nil {
+				tx.Rollback()
+				result.Failure(c, err.Error(), gin.H{})
+				return
+			}
+			affected, err := ret.RowsAffected()
+			log.Println(affected)
+			if affected >= 1 {
+				result.SuccessWithData(c, gin.H{})
+				log.Println("事务提交了")
+				tx.Commit()
+			} else {
+				result.SuccessWithData(c, gin.H{})
+				log.Println("事务回滚了")
+				tx.Rollback()
+			}
+		})
+
 	}
 	r.GET("/haha", middleware.AuthHandler, func(c *gin.Context) {
 		c.Request.URL.Path = "/hi"
