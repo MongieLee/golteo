@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"ginl/config"
 	"ginl/db"
 	"ginl/entitys/persistent"
 	"ginl/middleware"
@@ -33,6 +34,7 @@ func router02() http.Handler {
 }
 
 func main() {
+	config.InitViperConfig()
 	dbErr := db.InitDb()
 	if dbErr != nil {
 		log.Println(dbErr.Error())
@@ -272,17 +274,11 @@ func main() {
 
 	r.GET("/hi", func(c *gin.Context) {
 		user := &persistent.User{}
-		user.UserName = "aaa"
-		user.EncryptedPassword = "123"
-		user.Id = 111
-		user.CreateAt = time.Now()
-		user.UpdateAt = time.Now()
-
-		c.JSON(http.StatusOK, gin.H{
-			"msg":  "success",
-			"code": 200,
-			"data": user,
-		})
+		if err := db.GormDb.Find(user).Error; err != nil {
+			result.Failure(c, err.Error(), nil)
+			return
+		}
+		result.SuccessWithData(c, user)
 	})
 
 	r.GET("/getByte", func(c *gin.Context) {

@@ -1,0 +1,11 @@
+mysql:
+  #  地址
+  hostname: localhost
+  # 端口
+  port: 3306
+  # 用户名
+  user: root
+  # 密码
+  password: bendimima
+  # 数据库
+  database: go-pure
