@@ -34,6 +34,7 @@ func router02() http.Handler {
 }
 
 func main() {
+	config.InitFlag()
 	config.InitViperConfig()
 	dbErr := db.InitDb()
 	if dbErr != nil {
@@ -393,7 +394,5 @@ func main() {
 }
 
 func generateFileName(prefix string, t time.Time) string {
-	a := fmt.Sprintf("%03d", t.Nanosecond())
-	fmt.Sprintf(a)
 	return fmt.Sprintf("%s%s%s", prefix, t.Format("20060102150405"), fmt.Sprintf("%d", t.Nanosecond()/1000))
 }

@@ -23,7 +23,7 @@ func InitViperConfig() {
 	// 设置文件的格式
 	viper.SetConfigType("yaml")
 	// 设置查找配置文件的路径为当前路径 . 表示项目的工作目录，也就是main.go同级的那个目录
-	viper.AddConfigPath("./")
+	viper.AddConfigPath(FlagConfig.Path)
 
 	// 读取配置文件中的数据到viper中
 	err := viper.ReadInConfig()
