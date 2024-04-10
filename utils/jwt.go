@@ -2,7 +2,7 @@ package utils
 
 import (
 	"errors"
-	"ginl/entitys/persistent"
+	"ginl/app/model"
 	"github.com/golang-jwt/jwt/v4"
 	"time"
 )
@@ -15,21 +15,29 @@ type CustomClaims struct {
 	jwt.RegisteredClaims
 }
 
-// 生成JWT
-func GenRegisteredClaims(user *persistent.User) (string, error) {
+// GenRegisteredClaims 生成JWT
+func GenRegisteredClaims(user *model.User, expired time.Duration) (string, error) {
 	claims := &CustomClaims{
 		Username: user.UserName,
 		Id:       user.Id,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "go-pure",
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 5)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expired)),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(privateSigningKey)
 }
 
-// 校验JWT有效性，不解析
+func GenerateAccessToken(user *model.User) (string, error) {
+	return GenRegisteredClaims(user, time.Hour*12)
+}
+
+func GenerateRefreshToken(user *model.User) (string, error) {
+	return GenRegisteredClaims(user, time.Hour*24)
+}
+
+// ValidRegisteredClaims 校验JWT有效性，不解析
 func ValidRegisteredClaims(tokenStr string) bool {
 	parse, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		return privateSigningKey, nil
@@ -40,7 +48,7 @@ func ValidRegisteredClaims(tokenStr string) bool {
 	return parse.Valid
 }
 
-// 解析JWT
+// ParseJWTToken 解析JWT
 func ParseJWTToken(tokenStr string) (*CustomClaims, error) {
 	parse, err := jwt.ParseWithClaims(tokenStr, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return privateSigningKey, nil
