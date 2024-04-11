@@ -11,7 +11,7 @@ var privateSigningKey = []byte("mongielee")
 
 type CustomClaims struct {
 	Username string `json:"username"`
-	Id       int64  `json:"id"`
+	UserId   int64  `json:"userId"`
 	jwt.RegisteredClaims
 }
 
@@ -19,7 +19,7 @@ type CustomClaims struct {
 func GenRegisteredClaims(user *model.User, expired time.Duration) (string, error) {
 	claims := &CustomClaims{
 		Username: user.UserName,
-		Id:       user.Id,
+		UserId:   user.UserId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "go-pure",
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expired)),

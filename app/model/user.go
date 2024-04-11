@@ -8,8 +8,8 @@ import (
 type User struct {
 	Id                int64          `json:"id"`
 	UserId            int64          `json:"userId"`
-	UserName          string         `json:"userName" gorm:"column:username" validate:"required"`
-	NickName          string         `json:"nickName" gorm:"column:nickname"`
+	UserName          string         `json:"username" gorm:"column:username" validate:"required"`
+	NickName          string         `json:"nickname" gorm:"column:nickname"`
 	EncryptedPassword string         `json:"password" validate:"required"`
 	Salt              string         `json:"salt"`
 	Status            bool           `json:"status"`

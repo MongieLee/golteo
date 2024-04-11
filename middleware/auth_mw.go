@@ -22,7 +22,7 @@ func AuthHandler(c *gin.Context) {
 	}
 	customClaims, err := utils.ParseJWTToken(parts[1])
 	if err != nil {
-		result.FailureWithCode(c, http.StatusBadRequest, "无效token", gin.H{})
+		result.FailureWithCode(c, http.StatusBadRequest, "token不合法", gin.H{})
 		c.Abort()
 		return
 	}

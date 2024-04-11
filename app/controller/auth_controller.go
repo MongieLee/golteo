@@ -1,11 +1,14 @@
 package controller
 
 import (
+	"errors"
 	"ginl/app/model"
+	"ginl/app/model/dto"
 	"ginl/db"
 	"ginl/service/result"
 	"ginl/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
@@ -16,13 +19,13 @@ type AuthController struct {
 // Login 用户登陆
 func (a *AuthController) Login(c *gin.Context) {
 	var user model.User
-	err := c.ShouldBindJSON(&user)
+	var inputDto dto.LoginDto
+	err := c.ShouldBindJSON(&inputDto)
 	if err != nil {
 		result.FailureWithCode(c, http.StatusBadRequest, err.Error(), gin.H{})
 		return
 	}
-	inputPassword := user.EncryptedPassword
-	tx := db.GormDb.Where("username = ?", user.UserName).Find(&user)
+	tx := db.GormDb.Where("username = ?", inputDto.UserName).Find(&user)
 	if tx.Error != nil {
 		result.Failure(c, tx.Error.Error(), gin.H{})
 		return
@@ -31,8 +34,7 @@ func (a *AuthController) Login(c *gin.Context) {
 		result.FailureWithCode(c, http.StatusBadRequest, "账号或密码错误", gin.H{})
 		return
 	}
-	inputPassword = inputPassword + user.Salt
-	if err = bcrypt.CompareHashAndPassword([]byte(user.EncryptedPassword), []byte(inputPassword)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(user.EncryptedPassword), []byte(inputDto.Password+user.Salt)); err != nil {
 		result.FailureWithCode(c, http.StatusBadRequest, "账号或密码错误", gin.H{})
 		return
 	}
@@ -55,27 +57,32 @@ func (a *AuthController) Login(c *gin.Context) {
 // Register 用户注册
 func (a *AuthController) Register(c *gin.Context) {
 	var user model.User
-	err := c.ShouldBindJSON(&user)
+	var inputModel dto.RegisterDto
+	err := c.ShouldBindJSON(&inputModel)
 	if err != nil {
-		result.FailureWithCode(c, http.StatusBadRequest, err.Error(), gin.H{})
+		var err validator.ValidationErrors
+		ok := errors.As(err, &err)
+		if !ok {
+			result.FailureWithCode(c, http.StatusBadRequest, err.Error(), gin.H{})
+		}
+		translate := err.Translate(utils.Trans)
+		result.FailureWithCode(c, http.StatusBadRequest, "参数错误", gin.H{
+			"msg": utils.RemoveTopStruct(translate),
+		})
 		return
 	}
-	err = utils.Validator.Struct(&user)
-	if err != nil {
-		result.FailureWithCode(c, http.StatusBadRequest, err.Error(), gin.H{})
-		return
-	}
-	tx := db.GormDb.Unscoped().Where("username = ?", user.UserName).Find(&user)
+	tx := db.GormDb.Unscoped().Where("username = ?", inputModel.UserName).Find(&user)
 	if tx.RowsAffected > 0 {
 		result.FailureWithCode(c, http.StatusBadRequest, "用户名已存在", gin.H{})
 		return
 	}
 	salt, _ := utils.GenerateRandomSalt()
-	password, err := utils.HashPassword(user.EncryptedPassword, salt)
+	password, err := utils.HashPassword(inputModel.Password, salt)
 	if err != nil {
 		result.Failure(c, tx.Error.Error(), gin.H{})
 		return
 	}
+	user.UserName = inputModel.UserName
 	user.Salt = salt
 	user.UserId = utils.GenerateSnowId()
 	user.EncryptedPassword = password
@@ -89,5 +96,44 @@ func (a *AuthController) Register(c *gin.Context) {
 
 // RefreshToken 刷新用户Token
 func (a *AuthController) RefreshToken(c *gin.Context) {
-	result.SuccessWithData(c, gin.H{})
+	var bodyJson map[string]interface{}
+	err := c.ShouldBindJSON(&bodyJson)
+	if err != nil {
+		result.FailureWithCode(c, http.StatusBadRequest, err.Error(), gin.H{})
+		return
+	}
+	valid := false
+	var refreshToken string
+	if v, ok := bodyJson["refreshToken"]; ok {
+		rv, ok := v.(string)
+		if ok {
+			refreshToken = rv
+			valid = true
+		}
+	}
+	if valid {
+		userClaims, err := utils.ParseJWTToken(refreshToken)
+		if err != nil {
+			result.Failure(c, err.Error(), gin.H{})
+			return
+		}
+		var user = &model.User{
+			UserId:   userClaims.UserId,
+			UserName: userClaims.Username,
+		}
+		newRefreshToken, err := utils.GenerateRefreshToken(user)
+		if err != nil {
+			result.Failure(c, err.Error(), gin.H{})
+		}
+		newAccessToken, err := utils.GenerateAccessToken(user)
+		if err != nil {
+			result.Failure(c, err.Error(), gin.H{})
+		}
+		result.SuccessWithData(c, model.Auth{
+			Token:        newAccessToken,
+			RefreshToken: newRefreshToken,
+		})
+	} else {
+		result.FailureWithCode(c, http.StatusBadRequest, "参数异常", gin.H{})
+	}
 }
