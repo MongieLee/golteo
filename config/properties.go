@@ -21,9 +21,16 @@ type RedisConfig struct {
 	Database int    `mapstructure:"database"`
 }
 
+type RateConfig struct {
+	Enable bool `mapstructure:"enable"`
+	Limit  int  `mapstructure:"limit"`
+	Burst  int  `mapstructure:"burst"`
+}
+
 var CustomConfig struct {
-	Mysql MysqlConfig `mapstructure:"mysql"`
-	Redis RedisConfig `mapstructure:"redis"`
+	Mysql      MysqlConfig `mapstructure:"mysql"`
+	Redis      RedisConfig `mapstructure:"redis"`
+	RateConfig RateConfig  `mapstructure:"rate"`
 }
 
 func InitViperConfig() {

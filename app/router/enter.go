@@ -1,12 +1,16 @@
 package router
 
 import (
+	"ginl/config"
 	"ginl/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 func initMiddleware(r *gin.Engine) {
 	r.Use(middleware.CorsHandler)
+	if config.CustomConfig.RateConfig.Enable {
+		r.Use(middleware.RateHandler)
+	}
 }
 
 func initStaticResource(e *gin.Engine) {

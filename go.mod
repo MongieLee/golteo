@@ -3,6 +3,12 @@ module ginl
 go 1.22
 
 require (
+	github.com/spf13/pflag v1.0.5
+	github.com/spf13/viper v1.18.2
+	golang.org/x/time v0.5.0
+)
+
+require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/bwmarrin/snowflake v0.3.0 // indirect
 	github.com/bytedance/sonic v1.11.3 // indirect
@@ -38,8 +44,6 @@ require (
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.18.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect

@@ -16,3 +16,9 @@ redis:
   user:
   password:
   database: 0
+
+# 漏桶配置
+rate:
+  enable: true
+  limit: 500
+  burst: 100

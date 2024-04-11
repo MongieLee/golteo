@@ -26,6 +26,7 @@ func main() {
 		log.Println(dbErr.Error())
 		return
 	}
+	config.InitRate()
 	r := gin.Default()
 	router.InitRouters(r)
 	err := r.Run()
