@@ -6,6 +6,7 @@ import (
 	"ginl/service/result"
 	"ginl/utils"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
 
@@ -30,8 +31,8 @@ func (a *AuthController) Login(c *gin.Context) {
 		result.FailureWithCode(c, http.StatusBadRequest, "账号或密码错误", gin.H{})
 		return
 	}
-	bcryptPassword, err := utils.HashPassword(inputPassword, user.Salt)
-	if bcryptPassword != user.EncryptedPassword {
+	inputPassword = inputPassword + user.Salt
+	if err = bcrypt.CompareHashAndPassword([]byte(user.EncryptedPassword), []byte(inputPassword)); err != nil {
 		result.FailureWithCode(c, http.StatusBadRequest, "账号或密码错误", gin.H{})
 		return
 	}
