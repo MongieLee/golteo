@@ -1,6 +1,5 @@
 package controller
 
-import "C"
 import (
 	"ginl/app/model"
 	"ginl/common/dto"
