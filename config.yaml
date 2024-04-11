@@ -9,3 +9,10 @@ mysql:
   password: bendimima
   # 数据库
   database: go-pure
+
+redis:
+  hostname: localhost
+  port: 6379
+  user:
+  password:
+  database: 0

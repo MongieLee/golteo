@@ -13,8 +13,17 @@ type MysqlConfig struct {
 	Database string `mapstructure:"database"`
 }
 
+type RedisConfig struct {
+	Hostname string `mapstructure:"hostname"`
+	Port     string `mapstructure:"port"`
+	User     string `mapstructure:"user"`
+	Password string `mapstructure:"password"`
+	Database int    `mapstructure:"database"`
+}
+
 var CustomConfig struct {
-	Mysql MysqlConfig
+	Mysql MysqlConfig `mapstructure:"mysql"`
+	Redis RedisConfig `mapstructure:"redis"`
 }
 
 func InitViperConfig() {

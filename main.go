@@ -21,6 +21,11 @@ func main() {
 		log.Println(dbErr.Error())
 		return
 	}
+	dbErr = db.InitRedisDb()
+	if dbErr != nil {
+		log.Println(dbErr.Error())
+		return
+	}
 	r := gin.Default()
 	router.InitRouters(r)
 	err := r.Run()

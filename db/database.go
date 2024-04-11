@@ -1,11 +1,13 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
 	"ginl/config"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -14,6 +16,8 @@ import (
 
 var Db *sql.DB
 var GormDb *gorm.DB
+var Rdb *redis.Client
+var Ctx = context.Background()
 
 func InitDb() (err error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", config.CustomConfig.Mysql.User, config.CustomConfig.Mysql.Password, config.CustomConfig.Mysql.Hostname, config.CustomConfig.Mysql.Port, config.CustomConfig.Mysql.Database)
@@ -32,6 +36,17 @@ func InitDb() (err error) {
 		return err
 	}
 	return nil
+}
+
+func InitRedisDb() (err error) {
+	Rdb = redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%s", config.CustomConfig.Redis.Hostname, config.CustomConfig.Redis.Port),
+		Password: config.CustomConfig.Redis.Password,
+		DB:       config.CustomConfig.Redis.Database,
+		PoolSize: 20,
+	})
+	_, err = Rdb.Ping(Ctx).Result()
+	return
 }
 
 // 格式化时间，相当于yyyy-MM-dd HH:mm:ss
