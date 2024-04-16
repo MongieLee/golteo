@@ -3,7 +3,9 @@ package router
 import (
 	"ginl/config"
 	"ginl/middleware"
+	"ginl/service/result"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 func initMiddleware(r *gin.Engine) {
@@ -18,6 +20,9 @@ func initStaticResource(e *gin.Engine) {
 }
 
 func InitRouters(e *gin.Engine) {
+	e.NoRoute(func(c *gin.Context) {
+		result.FailureWithCode(c, http.StatusNotFound, "资源不存在", gin.H{})
+	})
 	initMiddleware(e)
 	initStaticResource(e)
 	group := e.Group("/api/v1")

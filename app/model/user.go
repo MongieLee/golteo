@@ -21,5 +21,5 @@ type User struct {
 
 // TableName gorm默认会用结构体名复数作为表名【users】，定义TableName方法可以自定义
 func (u User) TableName() string {
-	return "user"
+	return "sys_user"
 }
