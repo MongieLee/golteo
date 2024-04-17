@@ -1,8 +1,8 @@
 package router
 
 import (
+	"ginl/app/middleware"
 	"ginl/config"
-	"ginl/middleware"
 	"ginl/service/result"
 	"github.com/gin-gonic/gin"
 	"net/http"
