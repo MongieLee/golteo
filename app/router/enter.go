@@ -13,6 +13,7 @@ func initMiddleware(r *gin.Engine) {
 	if config.CustomConfig.RateConfig.Enable {
 		r.Use(middleware.RateHandler)
 	}
+	r.Use(middleware.ExceptionMiddleware)
 }
 
 func initStaticResource(e *gin.Engine) {

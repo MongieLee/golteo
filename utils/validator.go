@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/zh"
@@ -9,12 +8,13 @@ import (
 	"github.com/go-playground/validator/v10"
 	enTranslations "github.com/go-playground/validator/v10/translations/en"
 	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
+	"log"
 	"strings"
 )
 
 var Trans ut.Translator
 
-func InitTrans(locale string) (err error) {
+func InitTrans(locale string) {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 
 		zhT := zh.New() // 中文翻译器
@@ -30,21 +30,20 @@ func InitTrans(locale string) (err error) {
 		// 也可以使用 uni.FindTranslator(...) 传入多个locale进行查找
 		Trans, ok = uni.GetTranslator(locale)
 		if !ok {
-			return fmt.Errorf("uni.GetTranslator(%s) failed", locale)
+			log.Printf("init trans failed,err : %v\n", locale)
 		}
-
 		// 注册翻译器
 		switch locale {
 		case "en":
-			err = enTranslations.RegisterDefaultTranslations(v, Trans)
+			enTranslations.RegisterDefaultTranslations(v, Trans)
 		case "zh":
-			err = zhTranslations.RegisterDefaultTranslations(v, Trans)
+			zhTranslations.RegisterDefaultTranslations(v, Trans)
 		default:
-			err = enTranslations.RegisterDefaultTranslations(v, Trans)
+			enTranslations.RegisterDefaultTranslations(v, Trans)
 		}
-		return
+	} else {
+		log.Printf("init trans failed,err : %v\n", locale)
 	}
-	return
 }
 
 // RemoveTopStruct 删除字段的.前缀

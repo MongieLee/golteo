@@ -7,13 +7,13 @@ import (
 	"github.com/bwmarrin/snowflake"
 	"golang.org/x/crypto/bcrypt"
 	"log"
-	"reflect"
 	"time"
 )
 
 var node *snowflake.Node
 
-func Init(startTime string, machineID int64) (err error) {
+// InitSnow 初始化雪花算法
+func InitSnow(startTime string, machineID int64) (err error) {
 	var st time.Time
 	st, err = time.Parse("2006-01-02", startTime)
 	if err != nil {
@@ -27,9 +27,10 @@ func Init(startTime string, machineID int64) (err error) {
 	return
 }
 
+// GenerateSnowId 生成雪花id
 func GenerateSnowId() int64 {
 	if node == nil {
-		err := Init("2024-01-01", 1)
+		err := InitSnow("2024-01-01", 1)
 		if err != nil {
 			log.Fatalln("snow init failed")
 		}
@@ -37,19 +38,9 @@ func GenerateSnowId() int64 {
 	return node.Generate().Int64()
 }
 
-func StructToMap(obj interface{}) map[string]interface{} {
-	result := make(map[string]interface{})
-	s := reflect.ValueOf(obj).Elem()
-	typeOfT := s.Type()
-	for i := 0; i < s.NumField(); i++ {
-		field := s.Field(i)
-		result[typeOfT.Field(i).Name] = field.Interface()
-	}
-	return result
-}
-
 const _constSalt = "go-pure"
 
+// GenerateRandomSalt 生成随机盐
 func GenerateRandomSalt() (string, error) {
 	salt := make([]byte, 16)
 	_, err := rand.Read(salt)
@@ -59,6 +50,7 @@ func GenerateRandomSalt() (string, error) {
 	return base64.URLEncoding.EncodeToString(append(salt, []byte(_constSalt)...)), nil
 }
 
+// HashPassword 字符串哈希化
 func HashPassword(password, salt string) (string, error) {
 	combined := fmt.Sprintf("%v%v", password, salt)
 	fromPassword, err := bcrypt.GenerateFromPassword([]byte(combined), bcrypt.DefaultCost)

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"ginl/app/model"
 	"ginl/app/model/dto"
-	"ginl/db"
+	"ginl/config"
 	"ginl/service/result"
 	"ginl/utils"
 	"github.com/gin-gonic/gin"
@@ -25,7 +25,7 @@ func (a *AuthController) Login(c *gin.Context) {
 		result.FailureWithCode(c, http.StatusBadRequest, err.Error(), gin.H{})
 		return
 	}
-	tx := db.GormDb.Where("username = ?", inputDto.UserName).Find(&user)
+	tx := config.Db.Where("username = ?", inputDto.UserName).Find(&user)
 	if tx.Error != nil {
 		result.Failure(c, tx.Error.Error(), gin.H{})
 		return
@@ -60,18 +60,16 @@ func (a *AuthController) Register(c *gin.Context) {
 	var inputModel dto.RegisterDto
 	err := c.ShouldBindJSON(&inputModel)
 	if err != nil {
-		var err validator.ValidationErrors
-		ok := errors.As(err, &err)
+		var vErr validator.ValidationErrors
+		ok := errors.As(err, &vErr)
 		if !ok {
 			result.FailureWithCode(c, http.StatusBadRequest, err.Error(), gin.H{})
 		}
-		translate := err.Translate(utils.Trans)
-		result.FailureWithCode(c, http.StatusBadRequest, "参数错误", gin.H{
-			"msg": utils.RemoveTopStruct(translate),
-		})
+		translate := vErr.Translate(utils.Trans)
+		result.FailureWithCode(c, http.StatusBadRequest, "参数错误", utils.RemoveTopStruct(translate))
 		return
 	}
-	tx := db.GormDb.Unscoped().Where("username = ?", inputModel.UserName).Find(&user)
+	tx := config.Db.Unscoped().Where("username = ?", inputModel.UserName).Find(&user)
 	if tx.RowsAffected > 0 {
 		result.FailureWithCode(c, http.StatusBadRequest, "用户名已存在", gin.H{})
 		return
@@ -86,7 +84,7 @@ func (a *AuthController) Register(c *gin.Context) {
 	user.Salt = salt
 	user.UserId = utils.GenerateSnowId()
 	user.EncryptedPassword = password
-	tx = db.GormDb.Create(&user)
+	tx = config.Db.Create(&user)
 	if tx.Error != nil {
 		result.Failure(c, tx.Error.Error(), gin.H{})
 		return

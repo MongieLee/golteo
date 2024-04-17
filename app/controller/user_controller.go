@@ -3,7 +3,7 @@ package controller
 import (
 	"ginl/app/model"
 	"ginl/common/dto"
-	"ginl/db"
+	"ginl/config"
 	"ginl/service/result"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -17,7 +17,7 @@ type UserController struct {
 func (u *UserController) GetUserById(c *gin.Context) {
 	id := c.Param("id")
 	user := &model.User{}
-	tx := db.GormDb.Where("id = ?", id).Find(user)
+	tx := config.Db.Where("id = ?", id).Find(user)
 	if tx.Error != nil {
 		result.Failure(c, tx.Error.Error(), gin.H{})
 		return
@@ -43,7 +43,7 @@ func (u *UserController) GetUsers(c *gin.Context) {
 	}
 	pagination.PageNum = pageNum
 	var users []model.User
-	db.GormDb.Limit(pagination.GetPageSize()).Offset(pagination.GetPageNum()).Find(&users)
+	config.Db.Limit(pagination.GetPageSize()).Offset(pagination.GetPageNum()).Find(&users)
 	result.Success(c, "查询成功", users)
 }
 
@@ -55,12 +55,12 @@ func (u *UserController) ModifyUser(c *gin.Context) {
 		result.Failure(c, err.Error(), gin.H{})
 		return
 	}
-	tx := db.GormDb.Find(mdyUser)
+	tx := config.Db.Find(mdyUser)
 	if tx.RowsAffected <= 0 {
 		result.FailureWithCode(c, http.StatusBadRequest, "用户不存在", gin.H{})
 		return
 	}
-	tx = db.GormDb.Model(model.User{}).Where("id = ?", mdyUser.Id).Updates(&mdyUser)
+	tx = config.Db.Model(model.User{}).Where("id = ?", mdyUser.Id).Updates(&mdyUser)
 	if tx.Error != nil {
 		result.Failure(c, tx.Error.Error(), gin.H{})
 		return
@@ -75,7 +75,7 @@ func (u *UserController) ModifyUser(c *gin.Context) {
 // DeleteUser 删除用户（软删除）
 func (u *UserController) DeleteUser(c *gin.Context) {
 	id := c.Param("id")
-	tx := db.GormDb.Delete(&model.User{}, id)
+	tx := config.Db.Delete(&model.User{}, id)
 	if tx.Error != nil {
 		result.Failure(c, tx.Error.Error(), gin.H{})
 		return

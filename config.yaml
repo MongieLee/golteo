@@ -1,3 +1,5 @@
+app_debug: true
+
 mysql:
   #  地址
   hostname: localhost
@@ -22,3 +24,11 @@ rate:
   enable: true
   limit: 500
   burst: 100
+
+# rabbitmq
+rmq:
+  user: "mongielee"
+  password: "123456"
+  host: "127.0.0.1"
+  port: "5672"
+  virtual_host: "fuckHost"

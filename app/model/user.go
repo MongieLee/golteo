@@ -1,7 +1,6 @@
 package model
 
 import (
-	"ginl/db"
 	"gorm.io/gorm"
 )
 
@@ -10,12 +9,12 @@ type User struct {
 	UserId            int64          `json:"userId"`
 	UserName          string         `json:"username" gorm:"column:username" validate:"required"`
 	NickName          string         `json:"nickname" gorm:"column:nickname"`
-	EncryptedPassword string         `json:"password" validate:"required"`
-	Salt              string         `json:"salt"`
+	EncryptedPassword string         `json:"-" validate:"required"`
+	Salt              string         `json:"-"`
 	Status            bool           `json:"status"`
 	Avatar            string         `json:"avatar"`
-	CreatedAt         db.LocalTime   `json:"createAt"`
-	UpdatedAt         db.LocalTime   `json:"updateAt"`
+	CreatedAt         LocalTime      `json:"createAt"`
+	UpdatedAt         LocalTime      `json:"updateAt"`
 	DeletedAt         gorm.DeletedAt `json:"-"`
 }
 

@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/spf13/viper"
-	"os"
+	"log"
 )
 
 type MysqlConfig struct {
@@ -27,10 +27,20 @@ type RateConfig struct {
 	Burst  int  `mapstructure:"burst"`
 }
 
+type RabbitMqConfig struct {
+	User        string `mapstructure:"user"`
+	Password    string `mapstructure:"password"`
+	Host        string `mapstructure:"host"`
+	Port        string `mapstructure:"port"`
+	VirtualHost string `mapstructure:"virtual_host"`
+}
+
 var CustomConfig struct {
-	Mysql      MysqlConfig `mapstructure:"mysql"`
-	Redis      RedisConfig `mapstructure:"redis"`
-	RateConfig RateConfig  `mapstructure:"rate"`
+	AppDebug   bool           `mapstructure:"app_debug"`
+	Mysql      MysqlConfig    `mapstructure:"mysql"`
+	Redis      RedisConfig    `mapstructure:"redis"`
+	RateConfig RateConfig     `mapstructure:"rate"`
+	Rmq        RabbitMqConfig `mapstructure:"rmq"`
 }
 
 func InitViperConfig() {
@@ -44,10 +54,10 @@ func InitViperConfig() {
 	// 读取配置文件中的数据到viper中
 	err := viper.ReadInConfig()
 	if err != nil {
-		os.Exit(1)
+		log.Fatalf("Viper读取配置是啊比，错误信息：%v", err)
 	}
 	err = viper.Unmarshal(&CustomConfig)
 	if err != nil {
-		os.Exit(1)
+		log.Fatalf("Viper反解析Json失败，错误信息：%v", err)
 	}
 }
