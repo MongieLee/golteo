@@ -89,6 +89,12 @@ func (a *AuthController) Register(c *gin.Context) {
 		result.Failure(c, tx.Error.Error(), gin.H{})
 		return
 	}
+	go func() {
+		// 将用户列表全部缓存到redis中
+		users := &[]model.User{}
+		config.Db.Find(users)
+		config.Rdb.Set("hot_users", users, 3600)
+	}()
 	result.SuccessWithData(c, gin.H{})
 }
 

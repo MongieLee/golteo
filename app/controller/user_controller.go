@@ -29,7 +29,7 @@ func (u *UserController) GetUserById(c *gin.Context) {
 	result.Success(c, "查询成功", user)
 }
 
-// GetUsers 获取用户列表
+// GetUsers 获取用户列表，存Redis
 func (u *UserController) GetUsers(c *gin.Context) {
 	pagination := &dto.Pagination{}
 	pageSize, err := strconv.Atoi(c.DefaultQuery("pageSize", "1"))
@@ -43,8 +43,36 @@ func (u *UserController) GetUsers(c *gin.Context) {
 	}
 	pagination.PageNum = pageNum
 	var users []model.User
-	config.Db.Limit(pagination.GetPageSize()).Offset(pagination.GetPageNum()).Find(&users)
-	result.Success(c, "查询成功", users)
+	if err = config.Rdb.Get("hot_users", &users); err != nil {
+		tx := config.Db.Limit(pagination.GetPageSize()).Offset(pagination.GetPageNum() * pagination.GetPageSize()).Find(&users)
+		if tx.Error != nil {
+			result.Failure(c, "查询失败", gin.H{})
+		} else {
+			//go func() {
+			//	// 将用户列表全部缓存到redis中
+			//	users := &[]model.User{}
+			//	config.Db.Find(users)
+			//	config.Rdb.Set("hot_users", users, 3600)
+			//}()
+			result.Success(c, "查询成功", users)
+		}
+	} else {
+		// 获取起始的索引
+		start := pagination.GetPageSize() * pagination.GetPageNum()
+		// 获取结束的索引，-1时因为索引从0开始
+		end := start + pagination.GetPageSize() - 1
+		// 如果结束的索引大于列表长度，则将索引设为最后一个
+		if end >= len(users) {
+			end = len(users) - 1
+		}
+		if start >= len(users) {
+			result.Success(c, "查询成功", []model.User{})
+			return
+		}
+		// 获取左包含右不包含的用户数据
+		rUsers := users[start : end+1]
+		result.Success(c, "查询成功", rUsers)
+	}
 }
 
 // ModifyUser 修改用户信息

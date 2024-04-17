@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql/driver"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -16,6 +17,16 @@ type LocalTime time.Time
 func (t *LocalTime) MarshalJSON() ([]byte, error) {
 	t2 := time.Time(*t)
 	return []byte(fmt.Sprintf("\"%v\"", t2.Format(localTimeFormat))), nil
+}
+
+// UnmarshalJSON Json反序列化
+func (t *LocalTime) UnmarshalJSON(data []byte) error {
+	parse, err := time.Parse(localTimeFormat, strings.Trim(string(data), `"`))
+	if err != nil {
+		return err
+	}
+	*t = LocalTime(parse)
+	return err
 }
 
 // Value 存储调用
