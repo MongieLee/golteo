@@ -17,7 +17,7 @@ type UserController struct {
 func (u *UserController) GetUserById(c *gin.Context) {
 	id := c.Param("id")
 	user := &model.User{}
-	tx := config.Db.Where("id = ?", id).Find(user)
+	tx := config.Db.Where("user_id = ?", id).Find(user)
 	if tx.Error != nil {
 		result.Failure(c, tx.Error.Error(), gin.H{})
 		return
@@ -83,12 +83,13 @@ func (u *UserController) ModifyUser(c *gin.Context) {
 		result.Failure(c, err.Error(), gin.H{})
 		return
 	}
-	tx := config.Db.Find(mdyUser)
+	dbUser := &model.User{}
+	tx := config.Db.Where("user_id = ?", mdyUser.UserId).Find(dbUser)
 	if tx.RowsAffected <= 0 {
 		result.FailureWithCode(c, http.StatusBadRequest, "用户不存在", gin.H{})
 		return
 	}
-	tx = config.Db.Model(model.User{}).Where("id = ?", mdyUser.Id).Updates(&mdyUser)
+	tx = config.Db.Model(model.User{}).Where("user_id = ?", mdyUser.UserId).Updates(&mdyUser)
 	if tx.Error != nil {
 		result.Failure(c, tx.Error.Error(), gin.H{})
 		return
