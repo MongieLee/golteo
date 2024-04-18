@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/bwmarrin/snowflake"
 	"golang.org/x/crypto/bcrypt"
-	"log"
 	"time"
 )
 
@@ -32,7 +31,7 @@ func GenerateSnowId() int64 {
 	if node == nil {
 		err := InitSnow("2024-01-01", 1)
 		if err != nil {
-			log.Fatalln("snow init failed")
+			ErrorF("snow init failed")
 		}
 	}
 	return node.Generate().Int64()
