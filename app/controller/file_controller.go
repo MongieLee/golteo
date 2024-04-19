@@ -14,7 +14,7 @@ type FileController struct {
 
 var storeDir = "./uploads"
 
-// SingleFileUpload 用户登陆
+// SingleFileUpload 单文件上传
 func (f *FileController) SingleFileUpload(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -39,14 +39,14 @@ func (f *FileController) SingleFileUpload(c *gin.Context) {
 	})
 }
 
-// MultipleFileUpload 用户注册
+// MultipleFileUpload 多文件上传
 func (f *FileController) MultipleFileUpload(c *gin.Context) {
 	form, multipartErr := c.MultipartForm()
 	if multipartErr != nil {
 		result.FailureWithData(c, gin.H{"msg": multipartErr.Error()})
 		return
 	}
-	files := form.File["file"]
+	files := form.File["files"]
 	osErr := os.MkdirAll(storeDir, os.ModePerm)
 	if osErr != nil {
 		result.FailureWithData(c, gin.H{"msg": osErr.Error()})
