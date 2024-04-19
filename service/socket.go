@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"ginl/config"
 	"ginl/utils"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/redis/go-redis/v9"
 	"net/http"
 	"time"
 )
@@ -26,7 +28,29 @@ func InitSocket(conn *websocket.Conn) {
 	in := make(chan []byte)
 	pingTicker := time.NewTicker(pingTime)
 	stop := make(chan struct{})
-
+	newUUID, err := uuid.NewUUID()
+	if err != nil {
+		utils.ErrorF("发生错误。%v", err)
+		conn.Close()
+		return
+	}
+	t := time.Now().Unix()
+	// 往redis存在线数据
+	userId := fmt.Sprintf("%d-userId", newUUID.ID())
+	zAdds := []redis.Z{
+		{Score: float64(t), Member: userId},
+	}
+	//cmd := config.Rdb.Client.ZAdd(context.Background(), fmt.Sprintf("online_uids_%s_%s", "pure", "default"), zAdds...)
+	cmd := config.Rdb.Client.ZAdd(context.Background(), fmt.Sprintf("online_uids"), zAdds...)
+	err = cmd.Err()
+	if err != nil {
+		utils.ErrorF("写入redis有序队列发生异常:%v", err)
+	} else {
+		result, err := cmd.Result()
+		if err != nil {
+		}
+		utils.InfoF("cmd.Result:", result)
+	}
 	go func() {
 		// redis订阅监听
 		pubSub := config.Rdb.Client.Subscribe(context.Background(), redisChannelName)
@@ -56,6 +80,7 @@ func InitSocket(conn *websocket.Conn) {
 				// 客户端主动断开时，也会收到错误，websocket: close 1005 (no status)
 				utils.ErrorF("[ReadMessage]方法读取时发生异常:%v", err)
 				close(stop)
+				config.Rdb.Client.ZRem(context.Background(), "online_uids", userId)
 				break
 			}
 			in <- msg

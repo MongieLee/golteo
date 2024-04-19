@@ -21,7 +21,6 @@ func (f *FileController) SingleFileUpload(c *gin.Context) {
 		result.FailureWithData(c, gin.H{"msg": err.Error()})
 		return
 	}
-	storeDir := "./uploads"
 	osErr := os.MkdirAll(storeDir, os.ModePerm)
 	if osErr != nil {
 		result.FailureWithData(c, gin.H{"msg": osErr.Error()})
