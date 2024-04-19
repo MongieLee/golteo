@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	defer config.CloseAll()
 	config.Init()
 	r := gin.Default()
 	router.InitRouters(r)

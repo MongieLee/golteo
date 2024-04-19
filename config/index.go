@@ -26,3 +26,18 @@ func Init() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 }
+
+func CloseAll() {
+	if Rdb.Client != nil {
+		Rdb.Client.Close()
+	}
+	if Rdb.PubSub != nil {
+		for _, pubSub := range Rdb.PubSub {
+			pubSub.Close()
+		}
+	}
+	if Db != nil {
+		db, _ := Db.DB()
+		db.Close()
+	}
+}

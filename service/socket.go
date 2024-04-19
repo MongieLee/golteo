@@ -45,11 +45,6 @@ func InitSocket(conn *websocket.Conn) {
 	err = cmd.Err()
 	if err != nil {
 		utils.ErrorF("写入redis有序队列发生异常:%v", err)
-	} else {
-		result, err := cmd.Result()
-		if err != nil {
-		}
-		utils.InfoF("cmd.Result:", result)
 	}
 	go func() {
 		// redis订阅监听
@@ -59,6 +54,7 @@ func InitSocket(conn *websocket.Conn) {
 		if err != nil {
 			panic(err)
 		}
+		config.Rdb.PubSub = append(config.Rdb.PubSub, pubSub)
 		ch := pubSub.Channel()
 		for msg := range ch {
 			//var pushData map[string]any
