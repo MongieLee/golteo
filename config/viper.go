@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 	"log"
 )
@@ -50,7 +51,13 @@ func InitViperConfig() {
 	viper.SetConfigType("yaml")
 	// 设置查找配置文件的路径为当前路径 . 表示项目的工作目录，也就是main.go同级的那个目录
 	viper.AddConfigPath(FlagConfig.Path)
-
+	viper.WatchConfig()
+	viper.OnConfigChange(func(e fsnotify.Event) {
+		err := viper.Unmarshal(&CustomConfig)
+		if err != nil {
+			log.Fatalf("Viper反解析Json失败，错误信息：%v", err)
+		}
+	})
 	// 读取配置文件中的数据到viper中
 	err := viper.ReadInConfig()
 	if err != nil {
