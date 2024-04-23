@@ -1,4 +1,4 @@
-package main
+package ginl
 
 import (
 	"ginl/app/router"
@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func main() {
+func NewServer() {
 	defer config.CloseAll()
 	config.Init()
 	r := gin.Default()
